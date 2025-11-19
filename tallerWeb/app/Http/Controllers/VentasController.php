@@ -53,7 +53,7 @@ class VentasController extends Controller
         $productosPorSucursal = [];
         foreach ($productos as $producto) {
             $productosPorSucursal[$producto->idsucursal][] = $producto;
-        }        
+        }
         // Convertir a JSON para usar en JavaScript
         $productosPorSucursalJson = json_encode($productosPorSucursal);
 
@@ -65,11 +65,11 @@ class VentasController extends Controller
      * Store a newly created resource in storage.
      */
     public function store(Request $request)
-    {           
+    {
         session()->forget('data');
         $venta = new Ventas();
         $venta->fecha = $request->fecha;
-        $venta->total = $request->total;        
+        $venta->total = $request->total;
         $venta->idsucursal = $request->idsucursal;
         $venta->idusuario = Auth::user()->id;
         $venta->save();
@@ -79,9 +79,9 @@ class VentasController extends Controller
         foreach ($productos as $producto) {
             $detventa = new DetVentas();
             $detventa->idventa = $venta->id;
-            $detventa->idproducto = $producto['idProducto'];            
+            $detventa->idproducto = $producto['idProducto'];
             $detventa->cantidad = $producto['cantidad'];
-            $detventa->total = $producto['importe'];            
+            $detventa->total = $producto['importe'];
             $detventa->save();
 
             // Actualizar stock
@@ -91,30 +91,29 @@ class VentasController extends Controller
 
             //Si tu stock es menor o igual al rop, que notifique al gerente
             $this->notificarGerente($producto['idProducto']);
-            
+
         }
         return redirect()->route('ventas.index');
     }
 
     private function notificarGerente($idproducto)
     {
-        $producto = Productos::findOrFail($idproducto);        
-        $tockSucursales = SucursalesProductos::where('idproducto', $producto->id)->sum('stock');        
-        if($producto->rop >= $tockSucursales){            
+        $producto = Productos::findOrFail($idproducto);
+        $tockSucursales = SucursalesProductos::where('idproducto', $producto->id)->sum('stock');
+        if($producto->rop >= $tockSucursales){
             // Crear la nueva notificación
             $data = [
                 'idproducto' => $producto->id,
                 'nombre' => $producto->nombre,
                 'stock' => "{$tockSucursales}",
                 'rop' => $producto->rop
-            ];            
-    
+            ];
+
             // Guardar la lista de notificaciones en la sesión
-            //$request->session()->put('data', $data);            
+            //$request->session()->put('data', $data);
             session()->push('data', $data);
         }
     }
-
     /**
      * Display the specified resource.
      */
@@ -122,7 +121,7 @@ class VentasController extends Controller
     {
         $venta = Ventas::findOrFail($id);
         $detventas = DetVentas::where('idventa', $id)->get();
-        
+
         return view('ventas.show', compact('venta', 'detventas'));
     }
 
@@ -149,4 +148,9 @@ class VentasController extends Controller
     {
         //
     }
+
+
+
+    //TODO: CONSUMI DE AI
+
 }
